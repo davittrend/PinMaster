@@ -1,5 +1,5 @@
 import React from 'react';
-import PinterestAuth from './components/PinterestAuth';
+import PinterestAuth from './components/Pinterest.Auth';
 
 function App() {
   return (
