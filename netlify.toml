@@ -1,8 +1,8 @@
 [build]
-functions = "netlify/functions"
-publish = "dist"  # Adjust this if your static assets are published elsewhere (e.g., in `public` or `build`)
+  functions = "netlify/functions"  # Path to your functions directory
+  publish = "dist"  # Adjust based on where your static assets are
 
 [[redirects]]
-from = "/callback"
-to = "/.netlify/functions/pinterest-callback"
-status = 200
+  from = "/callback"  # The URL where Pinterest will redirect after authentication
+  to = "/.netlify/functions/pinterest-callback"  # Points to the function handling the callback
+  status = 200  # Ensure the request is redirected correctly
