@@ -2,12 +2,10 @@
 import React from 'react';
 
 const PinterestAuth = () => {
-  const appId = "1507772"; // Pinterest App ID
-  const redirectUri = "https://pinmaster.netlify.app/callback"; // Callback URL
-  const scopes = "read_public,write_public"; // Permissions requested
-  const authUrl = `https://www.pinterest.com/oauth/?response_type=code&client_id=${appId}&redirect_uri=${encodeURIComponent(
-    redirectUri
-  )}&scope=${encodeURIComponent(scopes)}`;
+  const appId = '1507772'; // Pinterest App ID
+  const redirectUri = 'https://pinmaster.netlify.app/callback'; // Callback URL
+  const scopes = 'boards:read,boards:write,pins:read,pins:write,user_accounts:read'; // Updated permissions requested
+  const authUrl = `https://www.pinterest.com/oauth/?response_type=code&client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
 
   const handleAuthClick = () => {
     window.location.href = authUrl; // Redirect to Pinterest OAuth URL
