@@ -1,8 +1,8 @@
 [build]
-command = "npm run build"
-publish = "dist"
+functions = "netlify/functions"
+publish = "dist"  # Adjust this if your static assets are published elsewhere (e.g., in `public` or `build`)
 
 [[redirects]]
 from = "/callback"
-to = "/.netlify/functions/pinterest-auth"
+to = "/.netlify/functions/pinterest-callback"
 status = 200
