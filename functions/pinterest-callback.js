@@ -26,15 +26,15 @@ exports.handler = async (event) => {
     const tokenResponse = await axios.post('https://api.pinterest.com/v5/oauth/token', {
       grant_type: 'authorization_code',
       code,
-      client_id: '1507772',
-      client_secret: '12e86e7dd050a39888c5e753908e80fae94f7367',
-      redirect_uri: 'https://pinmaster.netlify.app/.netlify/functions/pinterest-callback', // Ensure this matches Pinterest app settings
+      client_id: '1507772',  // Replace with your Pinterest App ID
+      client_secret: '12e86e7dd050a39888c5e753908e80fae94f7367',  // Replace with your Pinterest App Secret
+      redirect_uri: 'https://pinmaster.netlify.app/.netlify/functions/pinterest-callback',  // Ensure this matches Pinterest app settings
     });
 
     // Fetch user info
     const userResponse = await axios.get('https://api.pinterest.com/v5/user_account', {
       headers: {
-        Authorization: `Bearer ${tokenResponse.data.access_token}`,
+        Authorization: `Bearer ${tokenResponse.data.access_token}`,  // Use the access token
       },
     });
 
