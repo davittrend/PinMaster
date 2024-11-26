@@ -16,9 +16,9 @@ export function useBoards() {
 
       dispatch(setBoardsLoading(true));
       try {
-        const response = await fetch('https://api-sandbox.pinterest.com/v5/boards', {
+        const response = await fetch('/.netlify/functions/pinterest-api?path=/boards', {
           headers: {
-            Authorization: `Bearer ${userData.token.access_token}`,
+            'Authorization': `Bearer ${userData.token.access_token}`,
           },
         });
 
