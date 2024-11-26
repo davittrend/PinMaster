@@ -35,7 +35,7 @@ export function useBoards() {
         }
 
         const data = await response.json();
-        dispatch(setBoards(data.items));
+        dispatch(setBoards(data.items || []));
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to fetch boards';
         dispatch(setBoardsError(errorMessage));
