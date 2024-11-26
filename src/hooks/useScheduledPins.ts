@@ -14,7 +14,7 @@ export function useScheduledPins() {
   const dispatch = useDispatch();
   const { scheduledPins } = useSelector((state: RootState) => state.scheduler);
 
-  const schedulePin = useCallback((pinData: any) => {
+  const schedulePin = useCallback(async (pinData: any) => {
     const errors = validatePinData(pinData);
     if (errors.length > 0) {
       errors.forEach(error => toast.error(error));
@@ -27,16 +27,50 @@ export function useScheduledPins() {
       return false;
     }
 
-    const newPin = {
-      id: Date.now().toString(),
-      ...pinData,
-      status: 'pending' as const
-    };
+    try {
+      // If we have a file, upload it first
+      let imageUrl = pinData.imageUrl;
+      if (pinData.imageFile) {
+        // In a real app, you'd upload the file to your storage service here
+        // For now, we'll use a data URL
+        imageUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(pinData.imageFile);
+        });
+      }
 
-    dispatch(addScheduledPin(newPin));
-    toast.success('Pin scheduled successfully');
-    return true;
+      const newPin = {
+        id: Date.now().toString(),
+        title: pinData.title,
+        description: pinData.description,
+        link: pinData.link,
+        imageUrl,
+        boardId: pinData.boardId,
+        scheduledTime: pinData.scheduledTime,
+        status: 'pending' as const
+      };
+
+      dispatch(addScheduledPin(newPin));
+      toast.success('Pin scheduled successfully');
+      return true;
+    } catch (error) {
+      console.error('Schedule pin error:', error);
+      toast.error('Failed to schedule pin');
+      return false;
+    }
   }, [dispatch]);
+
+  const scheduleBulkPins = useCallback(async (pins: any[]) => {
+    let scheduledCount = 0;
+
+    for (const pin of pins) {
+      const success = await schedulePin(pin);
+      if (success) scheduledCount++;
+    }
+
+    return scheduledCount;
+  }, [schedulePin]);
 
   const updatePin = useCallback((pinId: string, updates: Partial<any>) => {
     const pin = scheduledPins.find(p => p.id === pinId);
@@ -55,6 +89,7 @@ export function useScheduledPins() {
   return {
     scheduledPins,
     schedulePin,
+    scheduleBulkPins,
     updatePin,
     deletePin
   };
