@@ -1,23 +1,17 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import { Trash2, SendHorizonal, Clock } from 'lucide-react';
 import { RootState } from '../../store/store';
-import { removeScheduledPin, updateScheduledPin } from '../../store/slices/schedulerSlice';
+import { useScheduledPins } from '../../hooks/useScheduledPins';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 
 export function ScheduledPinsList() {
-  const dispatch = useDispatch();
+  const { userData, refreshToken } = useAuth();
   const { scheduledPins } = useSelector((state: RootState) => state.scheduler);
   const { items: boards } = useSelector((state: RootState) => state.boards);
-  const { userData } = useSelector((state: RootState) => state.auth);
-
-  const handleDelete = (pinId: string) => {
-    if (window.confirm('Are you sure you want to delete this scheduled pin?')) {
-      dispatch(removeScheduledPin(pinId));
-      toast.success('Pin deleted successfully');
-    }
-  };
+  const { updatePin, deletePin } = useScheduledPins();
 
   const handlePublishNow = async (pin: any) => {
     if (!userData?.token?.access_token) {
@@ -25,70 +19,62 @@ export function ScheduledPinsList() {
       return;
     }
 
+    // Update pin status to indicate publishing
+    updatePin(pin.id, { status: 'publishing' });
+
     try {
-      const response = await fetch('/api/pinterest-pin', {
+      const pinData = {
+        title: pin.title,
+        description: pin.description,
+        board_id: pin.boardId,
+        media_source: {
+          source_type: 'image_url',
+          url: pin.imageUrl
+        },
+        ...(pin.link && { link: pin.link })
+      };
+
+      const response = await fetch('/.netlify/functions/pinterest-api?path=/pins', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userData.token.access_token}`
+          'Authorization': `Bearer ${userData.token.access_token}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ pin })
+        body: JSON.stringify(pinData)
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to publish pin');
+        // Handle 401 Unauthorized - Token expired
+        if (response.status === 401) {
+          const refreshed = await refreshToken();
+          if (refreshed) {
+            // Retry the publish with new token
+            return handlePublishNow(pin);
+          }
+          throw new Error('Session expired. Please log in again.');
+        }
+        throw new Error(data.message || 'Failed to publish pin');
       }
 
-      // Update pin status in Redux store
-      dispatch(updateScheduledPin({
-        ...pin,
+      // Update pin status to published
+      updatePin(pin.id, {
         status: 'published',
         publishedAt: new Date().toISOString(),
-        pinterestId: data.id // Store Pinterest's pin ID
-      }));
+        pinterestId: data.id
+      });
 
       toast.success('Pin published successfully to Pinterest');
     } catch (error) {
       console.error('Publish error:', error);
       
-      // Check if it's a token expiration error
-      if (error instanceof Error && error.message.includes('token')) {
-        // Try to refresh the token
-        try {
-          const refreshResponse = await fetch(`/api/pinterest-auth?path=/token&refresh_token=${userData.token.refresh_token}`);
-          const refreshData = await refreshResponse.json();
-
-          if (refreshResponse.ok && refreshData.token) {
-            // Update token in localStorage
-            const updatedAuth = {
-              ...userData,
-              token: {
-                ...userData.token,
-                ...refreshData.token
-              }
-            };
-            localStorage.setItem('pinterest_auth', JSON.stringify(updatedAuth));
-            
-            // Retry publishing with new token
-            await handlePublishNow(pin);
-            return;
-          }
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
-          toast.error('Session expired. Please log in again.');
-          return;
-        }
-      }
-
-      dispatch(updateScheduledPin({
-        ...pin,
+      updatePin(pin.id, {
         status: 'failed',
         error: error instanceof Error ? error.message : 'Failed to publish pin'
-      }));
+      });
 
-      toast.error('Failed to publish pin');
+      toast.error(error instanceof Error ? error.message : 'Failed to publish pin');
     }
   };
 
@@ -131,18 +117,26 @@ export function ScheduledPinsList() {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handlePublishNow(pin)}
-                      disabled={pin.status === 'published'}
+                      disabled={pin.status === 'published' || pin.status === 'publishing'}
                       className={`p-2 rounded-lg text-sm font-medium ${
                         pin.status === 'published'
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : pin.status === 'publishing'
+                          ? 'bg-yellow-50 text-yellow-600 cursor-wait'
                           : 'bg-green-50 text-green-600 hover:bg-green-100'
                       }`}
-                      title={pin.status === 'published' ? 'Already published' : 'Publish now'}
+                      title={
+                        pin.status === 'published' 
+                          ? 'Already published' 
+                          : pin.status === 'publishing'
+                          ? 'Publishing...'
+                          : 'Publish now'
+                      }
                     >
                       <SendHorizonal className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(pin.id)}
+                      onClick={() => deletePin(pin.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                       title="Delete pin"
                     >
@@ -165,8 +159,9 @@ export function ScheduledPinsList() {
                   <span>•</span>
                   <span className={`capitalize ${
                     pin.status === 'published' ? 'text-green-600' :
+                    pin.status === 'publishing' ? 'text-yellow-600' :
                     pin.status === 'failed' ? 'text-red-600' :
-                    'text-yellow-600'
+                    'text-blue-600'
                   }`}>
                     {pin.status}
                   </span>
