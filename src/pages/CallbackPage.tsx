@@ -43,9 +43,9 @@ function CallbackPage() {
         // Store in localStorage
         localStorage.setItem('pinterest_auth', JSON.stringify(data));
 
-        // Fetch initial boards
+        // Fetch initial boards through our proxy
         try {
-          const boardsResponse = await fetch('https://api-sandbox.pinterest.com/v5/boards', {
+          const boardsResponse = await fetch('/.netlify/functions/pinterest-api?path=/boards', {
             headers: {
               'Authorization': `Bearer ${data.token.access_token}`
             }
