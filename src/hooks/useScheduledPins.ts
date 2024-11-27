@@ -28,8 +28,10 @@ export function useScheduledPins() {
     }
 
     try {
-      // Convert File to data URL if we have a file
-      let imageUrl = '';
+      // Handle image URL
+      let imageUrl = pinData.imageUrl;
+      
+      // If we have a file or preview, use it
       if (pinData.imageFile) {
         imageUrl = await new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -39,7 +41,9 @@ export function useScheduledPins() {
         });
       } else if (pinData.imagePreview) {
         imageUrl = pinData.imagePreview;
-      } else {
+      }
+
+      if (!imageUrl) {
         toast.error('Image is required');
         return false;
       }
@@ -68,7 +72,11 @@ export function useScheduledPins() {
     let scheduledCount = 0;
 
     for (const pin of pins) {
-      const success = await schedulePin(pin);
+      const success = await schedulePin({
+        ...pin,
+        imageUrl: pin.imageUrl, // Use the URL directly from CSV
+        boardId: pin.boardId
+      });
       if (success) scheduledCount++;
     }
 
