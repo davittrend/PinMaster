@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
 import CallbackPage from './pages/CallbackPage';
 import DashboardPage from './pages/DashboardPage';
+import AccountsPage from './pages/AccountsPage';
 import ScheduledPinsPage from './pages/ScheduledPinsPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -38,6 +39,8 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  const { user } = useFirebaseAuth();
+
   return (
     <BrowserRouter>
       <Toaster 
@@ -60,7 +63,12 @@ function App() {
         }}
       />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route 
+          path="/" 
+          element={
+            user ? <Navigate to="/dashboard" replace /> : <HomePage />
+          } 
+        />
         <Route 
           path="/auth" 
           element={
@@ -75,6 +83,14 @@ function App() {
           element={
             <PrivateRoute>
               <DashboardPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard/accounts" 
+          element={
+            <PrivateRoute>
+              <AccountsPage />
             </PrivateRoute>
           } 
         />
@@ -94,6 +110,7 @@ function App() {
             </PrivateRoute>
           } 
         />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
