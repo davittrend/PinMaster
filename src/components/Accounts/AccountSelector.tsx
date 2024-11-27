@@ -1,56 +1,74 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { CircleUserRound, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Trash2 } from 'lucide-react';
 import { RootState } from '../../store/store';
-import { AccountSelector } from './AccountSelector';
-import { BoardsList } from './BoardsList';
-import { useAuth } from '../../hooks/useAuth';
+import { setAuth, removePinterestAccount } from '../../store/slices/authSlice';
 import toast from 'react-hot-toast';
 
-export function AccountsManager() {
+export function AccountSelector() {
+  const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
-  const { handleAuth } = useAuth();
-  const { pinterestAccounts } = useSelector((state: RootState) => state.auth);
-  const { items: boards } = useSelector((state: RootState) => state.boards);
+  const { userData, pinterestAccounts } = useSelector((state: RootState) => state.auth);
 
-  const handleAddAccount = async () => {
-    try {
-      await handleAuth();
-    } catch (error) {
-      console.error('Failed to add account:', error);
-      toast.error('Failed to add Pinterest account');
+  const handleAccountSwitch = (account: any) => {
+    dispatch(setAuth(account));
+    setIsOpen(false);
+    toast.success(`Switched to ${account.user.username}`);
+  };
+
+  const handleRemoveAccount = (e: React.MouseEvent, username: string) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to remove this Pinterest account?')) {
+      dispatch(removePinterestAccount(username));
+      toast.success('Pinterest account removed');
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Pinterest Accounts</h2>
-          <button
-            onClick={handleAddAccount}
-            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Account
-          </button>
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100"
+      >
+        <div className="flex items-center">
+          <img
+            src={`https://ui-avatars.com/api/?name=${userData?.user?.username}&background=red&color=fff`}
+            alt={userData?.user?.username}
+            className="w-8 h-8 rounded-full"
+          />
+          <span className="ml-3 font-medium">{userData?.user?.username}</span>
         </div>
+        <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
+      </button>
 
-        {pinterestAccounts.length === 0 ? (
-          <div className="text-center py-12">
-            <CircleUserRound className="w-12 h-12 mx-auto text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No accounts connected</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by connecting your Pinterest account.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <AccountSelector />
-            <BoardsList boards={boards} />
-          </div>
-        )}
-      </div>
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
+          {pinterestAccounts.map((account) => (
+            <div
+              key={account.user.username}
+              onClick={() => handleAccountSwitch(account)}
+              className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer first:rounded-t-lg last:rounded-b-lg"
+            >
+              <div className="flex items-center">
+                <img
+                  src={`https://ui-avatars.com/api/?name=${account.user.username}&background=red&color=fff`}
+                  alt={account.user.username}
+                  className="w-8 h-8 rounded-full"
+                />
+                <span className="ml-3">{account.user.username}</span>
+              </div>
+              {pinterestAccounts.length > 1 && (
+                <button
+                  onClick={(e) => handleRemoveAccount(e, account.user.username)}
+                  className="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
