@@ -25,6 +25,7 @@ export default defineConfig({
   },
   server: {
     headers: {
+      'Content-Type': 'application/javascript',
       'Cache-Control': 'no-store',
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
