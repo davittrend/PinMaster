@@ -1,9 +1,13 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { CircleUserRound, Calendar, Clock, Layout } from 'lucide-react';
 
 function HomePage() {
   const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    navigate('/auth');
+  };
 
   const handleSignUp = () => {
     navigate('/auth', { state: { signup: true } });
@@ -19,12 +23,12 @@ function HomePage() {
               <span className="ml-2 text-xl font-semibold">PinMaster</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link
-                to="/auth"
+              <button
+                onClick={handleSignIn}
                 className="text-gray-700 hover:text-red-600 font-medium"
               >
                 Sign in
-              </Link>
+              </button>
               <button
                 onClick={handleSignUp}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
@@ -56,12 +60,12 @@ function HomePage() {
                 </button>
               </div>
               <div className="mt-3 sm:mt-0 sm:ml-3">
-                <Link
-                  to="/auth"
+                <button
+                  onClick={handleSignIn}
                   className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
                 >
                   Sign in
-                </Link>
+                </button>
               </div>
             </div>
           </div>
