@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, Clock, Settings } from 'lucide-react';
+import { LayoutGrid, Clock, Settings, Users } from 'lucide-react';
 
 const navigation = [
+  { name: 'Accounts', href: '/dashboard/accounts', icon: Users },
   { name: 'Schedule Pin', href: '/dashboard', icon: LayoutGrid },
   { name: 'Scheduled Pins', href: '/dashboard/scheduled', icon: Clock },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
