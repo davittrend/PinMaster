@@ -1,6 +1,6 @@
 // src/hooks/useFirebaseAuth.ts
 import { useState, useEffect } from 'react';
-import { 
+import {
 User,
 signInWithEmailAndPassword,
 createUserWithEmailAndPassword,
@@ -26,7 +26,72 @@ useEffect(() => {
   return () => unsubscribe();
 }, []);
 
-// ... (rest of your signUp, signIn, etc. functions remain unchanged)
+const signUp = async (email: string, password: string) => {
+  try {
+    setLoading(true);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(userCredential.user);
+    toast.success('Account created! Please check your email for verification.');
+    return userCredential.user;
+  } catch (error: any) {
+    console.error('Sign up error:', error);
+    const errorMessage = error.code === 'auth/email-already-in-use'
+      ? 'Email already in use. Please sign in instead.'
+      : error.message || 'Failed to create account';
+    toast.error(errorMessage);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const signIn = async (email: string, password: string) => {
+  try {
+    setLoading(true);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    toast.success('Successfully signed in!');
+    return userCredential.user;
+  } catch (error: any) {
+    console.error('Sign in error:', error);
+    const errorMessage = error.code === 'auth/invalid-credential'
+      ? 'Invalid email or password'
+      : error.message || 'Failed to sign in';
+    toast.error(errorMessage);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const signInWithGoogle = async () => {
+  try {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    toast.success('Successfully signed in with Google!');
+    return result.user;
+  } catch (error: any) {
+    console.error('Google sign in error:', error);
+    const errorMessage = error.code === 'auth/popup-closed-by-user'
+      ? 'Sign in cancelled'
+      : error.message || 'Failed to sign in with Google';
+    toast.error(errorMessage);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const logOut = async () => {
+  try {
+    await signOut(auth);
+    toast.success('Successfully logged out');
+  } catch (error: any) {
+    console.error('Logout error:', error);
+    toast.error(error.message || 'Failed to log out');
+    throw error;
+  }
+};
 
 return {
   user,
