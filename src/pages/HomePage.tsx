@@ -15,9 +15,16 @@ function HomePage() {
             <div className="flex items-center space-x-4">
               <Link
                 to="/auth"
+                className="text-gray-700 hover:text-red-600 font-medium"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/auth"
+                state={{ signup: true }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
               >
-                Get Started
+                Sign up
               </Link>
             </div>
           </div>
@@ -38,9 +45,18 @@ function HomePage() {
               <div className="rounded-md shadow">
                 <Link
                   to="/auth"
+                  state={{ signup: true }}
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 md:py-4 md:text-lg md:px-10"
                 >
-                  Start Free
+                  Create Free Account
+                </Link>
+              </div>
+              <div className="mt-3 sm:mt-0 sm:ml-3">
+                <Link
+                  to="/auth"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
+                >
+                  Sign in
                 </Link>
               </div>
             </div>
