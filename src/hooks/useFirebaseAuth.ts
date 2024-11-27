@@ -11,60 +11,94 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 export function useFirebaseAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);
       toast.success('Verification email sent! Please check your inbox.');
+      navigate('/dashboard');
       return userCredential.user;
-    } catch (error) {
-      console.error('Signup error:', error);
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      const errorMessage = error.code === 'auth/email-already-in-use' 
+        ? 'Email already in use. Please sign in instead.'
+        : error.message || 'Failed to create account';
+      toast.error(errorMessage);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      toast.success('Successfully signed in!');
+      navigate('/dashboard');
       return userCredential.user;
-    } catch (error) {
-      console.error('Signin error:', error);
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      const errorMessage = error.code === 'auth/invalid-credential'
+        ? 'Invalid email or password'
+        : error.message || 'Failed to sign in';
+      toast.error(errorMessage);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
     try {
+      setLoading(true);
+      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      toast.success('Successfully signed in with Google!');
+      navigate('/dashboard');
       return result.user;
-    } catch (error) {
-      console.error('Google signin error:', error);
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      const errorMessage = error.code === 'auth/popup-closed-by-user'
+        ? 'Sign in cancelled'
+        : error.message || 'Failed to sign in with Google';
+      toast.error(errorMessage);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logOut = async () => {
     try {
+      setLoading(true);
       await signOut(auth);
       toast.success('Successfully logged out');
-    } catch (error) {
+      navigate('/auth');
+    } catch (error: any) {
       console.error('Logout error:', error);
+      const errorMessage = error.message || 'Failed to log out';
+      toast.error(errorMessage);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
