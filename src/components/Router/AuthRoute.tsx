@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useFirebaseAuth } from '../../hooks/useFirebaseAuth';
 
 interface AuthRouteProps {
@@ -8,6 +8,8 @@ interface AuthRouteProps {
 
 export function AuthRoute({ children }: AuthRouteProps) {
   const { user, loading } = useFirebaseAuth();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/dashboard';
 
   if (loading) {
     return (
@@ -17,5 +19,9 @@ export function AuthRoute({ children }: AuthRouteProps) {
     );
   }
 
-  return user ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+  if (user) {
+    return <Navigate to={from} replace />;
+  }
+
+  return <>{children}</>;
 }
