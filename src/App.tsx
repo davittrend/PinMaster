@@ -23,6 +23,20 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/auth" replace />;
 }
 
+function AuthRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useFirebaseAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
+
+  return user ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -47,23 +61,39 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/auth" element={<AuthPage />} />
+        <Route 
+          path="/auth" 
+          element={
+            <AuthRoute>
+              <AuthPage />
+            </AuthRoute>
+          } 
+        />
         <Route path="/callback" element={<CallbackPage />} />
-        <Route path="/dashboard" element={
-          <PrivateRoute>
-            <DashboardPage />
-          </PrivateRoute>
-        } />
-        <Route path="/dashboard/scheduled" element={
-          <PrivateRoute>
-            <ScheduledPinsPage />
-          </PrivateRoute>
-        } />
-        <Route path="/dashboard/settings" element={
-          <PrivateRoute>
-            <SettingsPage />
-          </PrivateRoute>
-        } />
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <DashboardPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard/scheduled" 
+          element={
+            <PrivateRoute>
+              <ScheduledPinsPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard/settings" 
+          element={
+            <PrivateRoute>
+              <SettingsPage />
+            </PrivateRoute>
+          } 
+        />
       </Routes>
     </BrowserRouter>
   );
