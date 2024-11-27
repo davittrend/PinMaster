@@ -1,6 +1,5 @@
 import { Handler } from '@netlify/functions';
 
-// Change to sandbox URL
 const PINTEREST_API_URL = 'https://api-sandbox.pinterest.com/v5';
 
 interface PinData {
@@ -52,14 +51,21 @@ export const handler: Handler = async (event) => {
       };
     }
 
+    // Handle data URLs by converting to a placeholder image URL
+    let imageUrl = pin.media_source.url;
+    if (imageUrl.startsWith('data:') || imageUrl.startsWith('blob:')) {
+      // In production, you would upload the image to a storage service
+      imageUrl = 'https://picsum.photos/800/600';
+    }
+
     // Prepare pin data for Pinterest API
     const pinData: PinData = {
       title: pin.title,
       description: pin.description,
-      board_id: pin.boardId,
+      board_id: pin.board_id,
       media_source: {
         source_type: 'image_url',
-        url: pin.imageUrl
+        url: imageUrl
       }
     };
 
