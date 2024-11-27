@@ -1,26 +1,31 @@
 [build]
-  command = "npm run clean && npm run build"
-  publish = "dist"
-  functions = "netlify/functions"
+command = "npm run clean && npm run build"
+publish = "dist"
+functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "18"
-  NPM_FLAGS = "--no-audit --no-fund"
+NODE_VERSION = "18"
+NPM_FLAGS = "--no-audit --no-fund"
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+from = "/api/*"
+to = "/.netlify/functions/:splat"
+status = 200
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = true
+from = "/*"
+to = "/index.html"
+status = 200
+force = true
 
 [[headers]]
-  for = "/*"
-    [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
+for = "/*"
+  [headers.values]
+  Cache-Control = "no-cache, no-store, must-revalidate"
+  Pragma = "no-cache"
+  Expires = "0"
+  X-Frame-Options = "DENY"
+  X-XSS-Protection = "1; mode=block"
+  X-Content-Type-Options = "nosniff"
+  Referrer-Policy = "strict-origin-when-cross-origin"
+  Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.netlify.app https://*.firebase.com https://*.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebase.com https://*.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
