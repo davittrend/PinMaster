@@ -20,14 +20,12 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom', '@reduxjs/toolkit', 'react-redux'],
         },
-        // Add hash to chunk filenames for cache busting
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
     assetsDir: 'assets',
-    // Generate manifest for asset tracking
     manifest: true,
   },
   server: {
