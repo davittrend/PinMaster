@@ -1,16 +1,26 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useAuth } from './hooks/useAuth';
+import { useFirebaseAuth } from './hooks/useFirebaseAuth';
 import HomePage from './pages/HomePage';
+import AuthPage from './pages/AuthPage';
 import CallbackPage from './pages/CallbackPage';
 import DashboardPage from './pages/DashboardPage';
 import ScheduledPinsPage from './pages/ScheduledPinsPage';
 import SettingsPage from './pages/SettingsPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
+  const { user, loading } = useFirebaseAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
+
+  return user ? <>{children}</> : <Navigate to="/auth" replace />;
 }
 
 function App() {
@@ -37,6 +47,7 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/callback" element={<CallbackPage />} />
         <Route path="/dashboard" element={
           <PrivateRoute>
