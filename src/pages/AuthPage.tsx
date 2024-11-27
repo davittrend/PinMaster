@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, CircleUserRound } from 'lucide-react';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
@@ -10,8 +10,15 @@ function AuthPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { signUp, signIn, signInWithGoogle } = useFirebaseAuth();
+  const { signUp, signIn, signInWithGoogle, user } = useFirebaseAuth();
   const navigate = useNavigate();
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,13 +27,12 @@ function AuthPage() {
     try {
       if (isSignUp) {
         await signUp(email, password);
-        toast.success('Account created! Please verify your email.');
       } else {
         await signIn(email, password);
-        navigate('/dashboard');
       }
+      navigate('/dashboard');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Authentication failed');
+      console.error('Authentication error:', error);
     } finally {
       setLoading(false);
     }
@@ -37,7 +43,7 @@ function AuthPage() {
       await signInWithGoogle();
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Google sign in failed');
+      console.error('Google sign in error:', error);
     }
   };
 
