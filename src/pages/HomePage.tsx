@@ -1,58 +1,125 @@
 import React from 'react';
-import { Header } from '../components/Header';
-import { Features } from '../components/Features';
-import { AuthButton } from '../components/AuthButton';
-import { Footer } from '../components/Footer';
-import { useAuth } from '../hooks/useAuth';
+import { Link } from 'react-router-dom';
+import { CircleUserRound, Calendar, Clock, Layout } from 'lucide-react';
 
 function HomePage() {
-  const { isLoading, isAuthenticated, userData, handleAuth, logout } = useAuth();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-          <Header />
-          <div className="p-8">
-            <Features isAuthenticated={isAuthenticated} />
-            <div className="mt-6">
-              <AuthButton 
-                isLoading={isLoading}
-                isAuthenticated={isAuthenticated}
-                onClick={handleAuth}
-                onLogout={logout}
-                username={userData?.user?.username}
-              />
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center">
+              <CircleUserRound className="h-8 w-8 text-red-500" />
+              <span className="ml-2 text-xl font-semibold">PinMaster</span>
             </div>
-            {isAuthenticated && userData?.user && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-900 mb-2">Account Details</h3>
-                <dl className="space-y-1">
-                  <div className="flex text-sm">
-                    <dt className="text-gray-500 w-24">Username:</dt>
-                    <dd className="text-gray-900">{userData.user.username}</dd>
-                  </div>
-                  {userData.user.first_name && (
-                    <div className="flex text-sm">
-                      <dt className="text-gray-500 w-24">Name:</dt>
-                      <dd className="text-gray-900">
-                        {`${userData.user.first_name} ${userData.user.last_name || ''}`}
-                      </dd>
-                    </div>
-                  )}
-                  {userData.user.account_type && (
-                    <div className="flex text-sm">
-                      <dt className="text-gray-500 w-24">Account Type:</dt>
-                      <dd className="text-gray-900">{userData.user.account_type}</dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-            )}
-            <Footer />
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/auth"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+              >
+                Get Started
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
+
+      <main>
+        <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+              <span className="block">Automate Your</span>
+              <span className="block text-red-600">Pinterest Strategy</span>
+            </h1>
+            <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+              Schedule pins, manage multiple accounts, and optimize your Pinterest presence with our powerful automation tools.
+            </p>
+            <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+              <div className="rounded-md shadow">
+                <Link
+                  to="/auth"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 md:py-4 md:text-lg md:px-10"
+                >
+                  Start Free
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-20">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="pt-6">
+                <div className="flow-root bg-white rounded-lg px-6 pb-8">
+                  <div className="-mt-6">
+                    <div>
+                      <span className="inline-flex items-center justify-center p-3 bg-red-500 rounded-md shadow-lg">
+                        <Calendar className="h-6 w-6 text-white" />
+                      </span>
+                    </div>
+                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Smart Scheduling</h3>
+                    <p className="mt-5 text-base text-gray-500">
+                      Schedule pins at optimal times with our intelligent posting algorithm.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <div className="flow-root bg-white rounded-lg px-6 pb-8">
+                  <div className="-mt-6">
+                    <div>
+                      <span className="inline-flex items-center justify-center p-3 bg-red-500 rounded-md shadow-lg">
+                        <Layout className="h-6 w-6 text-white" />
+                      </span>
+                    </div>
+                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Bulk Upload</h3>
+                    <p className="mt-5 text-base text-gray-500">
+                      Upload and schedule multiple pins at once with our CSV bulk uploader.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <div className="flow-root bg-white rounded-lg px-6 pb-8">
+                  <div className="-mt-6">
+                    <div>
+                      <span className="inline-flex items-center justify-center p-3 bg-red-500 rounded-md shadow-lg">
+                        <Clock className="h-6 w-6 text-white" />
+                      </span>
+                    </div>
+                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Queue Management</h3>
+                    <p className="mt-5 text-base text-gray-500">
+                      Easily manage your scheduled pins and optimize your content calendar.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer className="bg-white">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8">
+          <div className="flex justify-center space-x-6 md:order-2">
+            <a href="#" className="text-gray-400 hover:text-gray-500">
+              Terms
+            </a>
+            <a href="#" className="text-gray-400 hover:text-gray-500">
+              Privacy
+            </a>
+            <a href="#" className="text-gray-400 hover:text-gray-500">
+              Contact
+            </a>
+          </div>
+          <div className="mt-8 md:mt-0 md:order-1">
+            <p className="text-center text-base text-gray-400">
+              &copy; 2024 PinMaster. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
