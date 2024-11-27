@@ -2,21 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Lock, CircleUserRound } from 'lucide-react';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
 import { useLocation, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 function AuthPage() {
   const location = useLocation();
   const [isSignUp, setIsSignUp] = useState(location.state?.signup || false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signUp, signIn, signInWithGoogle, loading, user } = useFirebaseAuth();
+  const [loading, setLoading] = useState(false);
+  
+  const { signUp, signIn, signInWithGoogle } = useFirebaseAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Redirect to dashboard if already authenticated
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
 
   useEffect(() => {
     setIsSignUp(location.state?.signup || false);
@@ -24,32 +20,36 @@ function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
       if (isSignUp) {
         await signUp(email, password);
+        navigate('/dashboard');
       } else {
         await signIn(email, password);
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Authentication error:', error);
+      toast.error('Authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
+      setLoading(true);
       await signInWithGoogle();
+      navigate('/dashboard');
     } catch (error) {
       console.error('Google sign in error:', error);
+      toast.error('Google sign in failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -107,7 +107,6 @@ function AuthPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
                   placeholder="Password"
-                  minLength={6}
                 />
               </div>
             </div>
@@ -156,6 +155,7 @@ function AuthPage() {
                   fill="#EA4335"
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
+                <path fill="none" d="M1 1h22v22H1z" />
               </svg>
               Continue with Google
             </button>
