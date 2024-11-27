@@ -1,5 +1,5 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useFirebaseAuth } from '../../hooks/useFirebaseAuth';
 
 interface PrivateRouteProps {
@@ -8,6 +8,7 @@ interface PrivateRouteProps {
 
 export function PrivateRoute({ children }: PrivateRouteProps) {
   const { user, loading } = useFirebaseAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -17,5 +18,10 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
     );
   }
 
-  return user ? <>{children}</> : <Navigate to="/auth" replace />;
+  if (!user) {
+    // Save the attempted URL for redirecting after login
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
 }
