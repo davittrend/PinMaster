@@ -23,10 +23,16 @@ export function useFirebaseAuth() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+
+      // If user is authenticated and on auth page, redirect to dashboard
+      if (currentUser && location.pathname === '/auth') {
+        const from = location.state?.from?.pathname || '/dashboard';
+        navigate(from, { replace: true });
+      }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [navigate, location]);
 
   const signUp = async (email: string, password: string) => {
     try {
