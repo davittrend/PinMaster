@@ -19,7 +19,6 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
   }
 
   if (!user) {
-    // Save the attempted URL for redirecting after login
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
