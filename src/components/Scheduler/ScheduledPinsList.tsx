@@ -23,12 +23,16 @@ export function ScheduledPinsList() {
     updatePin(pin.id, { status: 'publishing' });
 
     try {
-      // Convert data URL to blob if it's a data URL
+      // Handle data URL image
       let imageUrl = pin.imageUrl;
       if (imageUrl.startsWith('data:')) {
-        // For demo purposes, we'll use a placeholder image
-        // In production, you would upload the image to a storage service
-        imageUrl = 'https://picsum.photos/800/600';
+        // Extract base64 data
+        const base64Data = imageUrl.split(',')[1];
+        // Convert to blob
+        const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+        
+        // Create a temporary URL for the blob
+        imageUrl = URL.createObjectURL(blob);
       }
 
       const pinData = {
@@ -54,16 +58,19 @@ export function ScheduledPinsList() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle 401 Unauthorized - Token expired
         if (response.status === 401) {
           const refreshed = await refreshToken();
           if (refreshed) {
-            // Retry the publish with new token
             return handlePublishNow(pin);
           }
           throw new Error('Session expired. Please log in again.');
         }
         throw new Error(data.message || 'Failed to publish pin');
+      }
+
+      // Cleanup temporary URL if created
+      if (imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl);
       }
 
       // Update pin status to published
