@@ -32,8 +32,7 @@ export function useFirebaseAuth() {
       setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);
-      toast.success('Verification email sent! Please check your inbox.');
-      navigate('/dashboard');
+      toast.success('Account created! Please check your email for verification.');
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -52,7 +51,6 @@ export function useFirebaseAuth() {
       setLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       toast.success('Successfully signed in!');
-      navigate('/dashboard');
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -72,7 +70,6 @@ export function useFirebaseAuth() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       toast.success('Successfully signed in with Google!');
-      navigate('/dashboard');
       return result.user;
     } catch (error: any) {
       console.error('Google sign in error:', error);
@@ -90,7 +87,7 @@ export function useFirebaseAuth() {
     try {
       await signOut(auth);
       toast.success('Successfully logged out');
-      navigate('/auth');
+      navigate('/auth', { replace: true });
     } catch (error: any) {
       console.error('Logout error:', error);
       toast.error(error.message || 'Failed to log out');
