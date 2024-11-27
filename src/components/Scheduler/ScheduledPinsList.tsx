@@ -23,13 +23,21 @@ export function ScheduledPinsList() {
     updatePin(pin.id, { status: 'publishing' });
 
     try {
+      // Convert data URL to blob if it's a data URL
+      let imageUrl = pin.imageUrl;
+      if (imageUrl.startsWith('data:')) {
+        // For demo purposes, we'll use a placeholder image
+        // In production, you would upload the image to a storage service
+        imageUrl = 'https://picsum.photos/800/600';
+      }
+
       const pinData = {
         title: pin.title,
         description: pin.description,
         board_id: pin.boardId,
         media_source: {
           source_type: 'image_url',
-          url: pin.imageUrl
+          url: imageUrl
         },
         ...(pin.link && { link: pin.link })
       };
