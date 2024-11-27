@@ -13,7 +13,15 @@ import ScheduledPinsPage from './pages/ScheduledPinsPage';
 import SettingsPage from './pages/SettingsPage';
 
 function App() {
-  const { user } = useFirebaseAuth();
+  const { user, loading } = useFirebaseAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -39,9 +47,7 @@ function App() {
       <Routes>
         <Route 
           path="/" 
-          element={
-            user ? <Navigate to="/dashboard" replace /> : <HomePage />
-          } 
+          element={user ? <Navigate to="/dashboard" replace /> : <HomePage />} 
         />
         <Route 
           path="/auth" 
@@ -53,34 +59,15 @@ function App() {
         />
         <Route path="/callback" element={<CallbackPage />} />
         <Route 
-          path="/dashboard" 
+          path="/dashboard/*" 
           element={
             <PrivateRoute>
-              <DashboardPage />
-            </PrivateRoute>
-          } 
-        />
-        <Route 
-          path="/dashboard/accounts" 
-          element={
-            <PrivateRoute>
-              <AccountsPage />
-            </PrivateRoute>
-          } 
-        />
-        <Route 
-          path="/dashboard/scheduled" 
-          element={
-            <PrivateRoute>
-              <ScheduledPinsPage />
-            </PrivateRoute>
-          } 
-        />
-        <Route 
-          path="/dashboard/settings" 
-          element={
-            <PrivateRoute>
-              <SettingsPage />
+              <Routes>
+                <Route index element={<DashboardPage />} />
+                <Route path="accounts" element={<AccountsPage />} />
+                <Route path="scheduled" element={<ScheduledPinsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Routes>
             </PrivateRoute>
           } 
         />
