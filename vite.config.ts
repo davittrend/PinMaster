@@ -22,6 +22,9 @@ export default defineConfig({
         },
       },
     },
+    assetsDir: 'assets',
+    emptyOutDir: true,
+    manifest: true,
   },
   server: {
     headers: {
