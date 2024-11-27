@@ -1,74 +1,44 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { ChevronDown, Trash2 } from 'lucide-react';
-import { RootState } from '../../store/store';
-import { setAuth, removePinterestAccount } from '../../store/slices/authSlice';
-import toast from 'react-hot-toast';
+import React from 'react';
+import { Board } from '../../types'; // Create this if you haven't
 
-export function AccountSelector() {
-  const [isOpen, setIsOpen] = useState(false);
-  const dispatch = useDispatch();
-  const { userData, pinterestAccounts } = useSelector((state: RootState) => state.auth);
+interface BoardsListProps {
+boards: Board[];
+}
 
-  const handleAccountSwitch = (account: any) => {
-    dispatch(setAuth(account));
-    setIsOpen(false);
-    toast.success(`Switched to ${account.user.username}`);
-  };
-
-  const handleRemoveAccount = (e: React.MouseEvent, username: string) => {
-    e.stopPropagation();
-    if (window.confirm('Are you sure you want to remove this Pinterest account?')) {
-      dispatch(removePinterestAccount(username));
-      toast.success('Pinterest account removed');
-    }
-  };
-
+export function BoardsList({ boards }: BoardsListProps) {
+if (!boards.length) {
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100"
-      >
-        <div className="flex items-center">
-          <img
-            src={`https://ui-avatars.com/api/?name=${userData?.user?.username}&background=red&color=fff`}
-            alt={userData?.user?.username}
-            className="w-8 h-8 rounded-full"
-          />
-          <span className="ml-3 font-medium">{userData?.user?.username}</span>
-        </div>
-        <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className="absolute z-10 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
-          {pinterestAccounts.map((account) => (
-            <div
-              key={account.user.username}
-              onClick={() => handleAccountSwitch(account)}
-              className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer first:rounded-t-lg last:rounded-b-lg"
-            >
-              <div className="flex items-center">
-                <img
-                  src={`https://ui-avatars.com/api/?name=${account.user.username}&background=red&color=fff`}
-                  alt={account.user.username}
-                  className="w-8 h-8 rounded-full"
-                />
-                <span className="ml-3">{account.user.username}</span>
-              </div>
-              {pinterestAccounts.length > 1 && (
-                <button
-                  onClick={(e) => handleRemoveAccount(e, account.user.username)}
-                  className="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="text-center py-6">
+      <p className="text-gray-500">No boards available</p>
     </div>
   );
+}
+
+return (
+  <div className="space-y-4">
+    <h3 className="text-lg font-medium">Boards</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {boards.map((board) => (
+        <div
+          key={board.id}
+          className="flex items-center p-4 bg-gray-50 rounded-lg"
+        >
+          {board.image_thumbnail_url && (
+            <img
+              src={board.image_thumbnail_url}
+              alt={board.name}
+              className="w-12 h-12 rounded object-cover mr-4"
+            />
+          )}
+          <div>
+            <h4 className="font-medium">{board.name}</h4>
+            <p className="text-sm text-gray-500">
+              {board.pin_count || 0} pins
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 }
