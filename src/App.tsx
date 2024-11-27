@@ -2,8 +2,6 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useFirebaseAuth } from './hooks/useFirebaseAuth';
-import { PrivateRoute } from './components/Router/PrivateRoute';
-import { AuthRoute } from './components/Router/AuthRoute';
 import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
 import CallbackPage from './pages/CallbackPage';
@@ -51,25 +49,24 @@ function App() {
         />
         <Route 
           path="/auth" 
-          element={
-            <AuthRoute>
-              <AuthPage />
-            </AuthRoute>
-          } 
+          element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} 
         />
         <Route path="/callback" element={<CallbackPage />} />
         <Route 
-          path="/dashboard/*" 
-          element={
-            <PrivateRoute>
-              <Routes>
-                <Route index element={<DashboardPage />} />
-                <Route path="accounts" element={<AccountsPage />} />
-                <Route path="scheduled" element={<ScheduledPinsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-              </Routes>
-            </PrivateRoute>
-          } 
+          path="/dashboard" 
+          element={!user ? <Navigate to="/auth" replace /> : <DashboardPage />} 
+        />
+        <Route 
+          path="/dashboard/accounts" 
+          element={!user ? <Navigate to="/auth" replace /> : <AccountsPage />} 
+        />
+        <Route 
+          path="/dashboard/scheduled" 
+          element={!user ? <Navigate to="/auth" replace /> : <ScheduledPinsPage />} 
+        />
+        <Route 
+          path="/dashboard/settings" 
+          element={!user ? <Navigate to="/auth" replace /> : <SettingsPage />} 
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
