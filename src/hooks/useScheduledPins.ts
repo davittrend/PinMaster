@@ -28,9 +28,9 @@ export function useScheduledPins() {
     }
 
     try {
-      // Use the image preview URL directly if available
-      const imageUrl = pinData.imagePreview || pinData.imageUrl;
-
+      // Store the actual data URL from the image preview
+      const imageUrl = pinData.imagePreview;
+      
       if (!imageUrl) {
         toast.error('Image is required');
         return false;
@@ -41,7 +41,7 @@ export function useScheduledPins() {
         title: pinData.title,
         description: pinData.description,
         link: pinData.link,
-        imageUrl,
+        imageUrl: imageUrl, // Store the full data URL
         boardId: pinData.boardId,
         scheduledTime: pinData.scheduledTime,
         status: 'pending' as const
