@@ -1,8 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CircleUserRound, Calendar, Clock, Layout } from 'lucide-react';
 
 function HomePage() {
+  const navigate = useNavigate();
+
+  const handleSignUp = () => {
+    navigate('/auth', { state: { signup: true } });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50">
       <nav className="bg-white shadow-sm">
@@ -19,13 +25,12 @@ function HomePage() {
               >
                 Sign in
               </Link>
-              <Link
-                to="/auth"
-                state={{ signup: true }}
+              <button
+                onClick={handleSignUp}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
               >
                 Sign up
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -43,13 +48,12 @@ function HomePage() {
             </p>
             <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
               <div className="rounded-md shadow">
-                <Link
-                  to="/auth"
-                  state={{ signup: true }}
+                <button
+                  onClick={handleSignUp}
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 md:py-4 md:text-lg md:px-10"
                 >
                   Create Free Account
-                </Link>
+                </button>
               </div>
               <div className="mt-3 sm:mt-0 sm:ml-3">
                 <Link
