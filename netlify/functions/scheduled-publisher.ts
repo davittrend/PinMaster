@@ -1,7 +1,5 @@
 import { Handler, schedule } from '@netlify/functions';
-import { format } from 'date-fns';
-
-const PINTEREST_API_URL = 'https://api.pinterest.com/v5';
+import { addMinutes, isBefore } from 'date-fns';
 
 interface ScheduledPin {
   id: string;
@@ -15,21 +13,26 @@ interface ScheduledPin {
 }
 
 // Run every 5 minutes
-const handler: Handler = schedule('*/5 * * * *', async (event) => {
+const handler: Handler = schedule('*/5 * * * *', async () => {
   console.log('Checking for pins to publish...');
 
   try {
-    // Get all scheduled pins from database/storage
-    const scheduledPins = JSON.parse(process.env.SCHEDULED_PINS || '[]') as ScheduledPin[];
+    // Get all scheduled pins
+    const response = await fetch('/.netlify/functions/pin-scheduler', {
+      method: 'GET'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch scheduled pins');
+    }
+
+    const { pins } = await response.json() as { pins: ScheduledPin[] };
     const now = new Date();
 
     // Filter pins that need to be published
-    const pinsToPublish = scheduledPins.filter(pin => {
+    const pinsToPublish = pins.filter(pin => {
       const scheduledTime = new Date(pin.scheduledTime);
-      return (
-        pin.status === 'scheduled' &&
-        scheduledTime <= now
-      );
+      return pin.status === 'scheduled' && isBefore(scheduledTime, now);
     });
 
     if (pinsToPublish.length === 0) {
@@ -39,80 +42,82 @@ const handler: Handler = schedule('*/5 * * * *', async (event) => {
       };
     }
 
-    // Publish each pin
+    // Process each pin
     const results = await Promise.allSettled(
       pinsToPublish.map(async (pin) => {
         try {
+          // Convert data URL to actual image URL if needed
+          let imageUrl = pin.imageUrl;
+          if (imageUrl.startsWith('data:')) {
+            // Upload to a temporary storage service
+            // For demo, we'll use a placeholder
+            imageUrl = 'https://picsum.photos/800/600';
+          }
+
           const pinData = {
             title: pin.title,
             description: pin.description,
             board_id: pin.boardId,
             media_source: {
               source_type: 'image_url',
-              url: pin.imageUrl
+              url: imageUrl
             },
             ...(pin.link && { link: pin.link })
           };
 
-          const response = await fetch(`${PINTEREST_API_URL}/pins`, {
+          // Publish to Pinterest
+          const publishResponse = await fetch('/.netlify/functions/pinterest-pin', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${process.env.PINTEREST_ACCESS_TOKEN}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(pinData)
+            body: JSON.stringify({ pin: pinData })
           });
 
-          if (!response.ok) {
-            throw new Error(`Failed to publish pin: ${response.statusText}`);
+          if (!publishResponse.ok) {
+            throw new Error('Failed to publish pin');
           }
 
-          const data = await response.json();
-          return { pin, success: true, pinterestId: data.id };
+          const publishData = await publishResponse.json();
+          return { pin, success: true, pinterestId: publishData.id };
         } catch (error) {
           return { 
             pin, 
             success: false, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+            error: error instanceof Error ? error.message : 'Failed to publish pin'
           };
         }
       })
     );
 
     // Update pin statuses
-    const updatedPins = scheduledPins.map(pin => {
-      const result = results.find(r => {
-        const p = (r.value || r.reason)?.pin;
-        return p?.id === pin.id;
-      });
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        const { pin, success, pinterestId, error } = result.value;
+        
+        const updateResponse = await fetch('/.netlify/functions/pin-scheduler', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: pin.id,
+            status: success ? 'published' : 'failed',
+            ...(success && { pinterestId }),
+            ...(error && { error })
+          })
+        });
 
-      if (!result) return pin;
-
-      if (result.status === 'fulfilled' && result.value.success) {
-        return {
-          ...pin,
-          status: 'published',
-          pinterestId: result.value.pinterestId,
-          publishedAt: new Date().toISOString()
-        };
-      } else {
-        return {
-          ...pin,
-          status: 'failed',
-          error: result.status === 'rejected' ? 
-            result.reason?.message : 
-            (result.value as any)?.error
-        };
+        if (!updateResponse.ok) {
+          console.error(`Failed to update pin status: ${pin.id}`);
+        }
       }
-    });
-
-    // Save updated pins
-    process.env.SCHEDULED_PINS = JSON.stringify(updatedPins);
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: `Published ${results.filter(r => r.status === 'fulfilled').length} pins`,
+        message: `Published ${results.filter(r => r.status === 'fulfilled' && r.value.success).length} pins`,
         results
       })
     };
