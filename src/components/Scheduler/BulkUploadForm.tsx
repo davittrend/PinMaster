@@ -58,40 +58,53 @@ export function BulkUploadForm() {
   });
 
   const parseCSV = (csv: string): CSVPin[] => {
-    const lines = csv.split('\n');
-    if (lines.length < 2) throw new Error('CSV file is empty or invalid');
+    // Split by newline and filter out empty lines
+    const lines = csv.split(/\r?\n/).filter(line => line.trim().length > 0);
+    if (lines.length < 2) {
+      throw new Error('CSV file must contain at least a header row and one data row');
+    }
 
-    const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
-    const requiredHeaders = ['title', 'description', 'imageurl'];
+    // Parse headers and convert to lowercase
+    const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
     
-    for (const required of requiredHeaders) {
-      if (!headers.includes(required)) {
-        throw new Error(`Missing required column: ${required}`);
-      }
+    // Validate required headers
+    const requiredHeaders = ['title', 'description', 'imageurl'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    if (missingHeaders.length > 0) {
+      throw new Error(`Missing required columns: ${missingHeaders.join(', ')}`);
     }
 
     const pins: CSVPin[] = [];
+    
+    // Process each data row
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      const values = line.split(',').map(v => v.trim());
+      const values = lines[i].split(',').map(v => v.trim());
+      
+      // Skip rows with incorrect number of columns
       if (values.length !== headers.length) {
-        console.warn(`Skipping invalid line ${i + 1}: incorrect number of columns`);
+        console.warn(`Skipping row ${i + 1}: incorrect number of columns`);
         continue;
       }
 
-      const pin: any = {};
+      // Create pin object from row data
+      const pin: Record<string, string> = {};
       headers.forEach((header, index) => {
         pin[header] = values[index];
       });
 
-      if (!pin.title || !pin.description || !pin.imageUrl) {
-        console.warn(`Skipping invalid line ${i + 1}: missing required fields`);
+      // Validate required fields
+      if (!pin.title || !pin.description || !pin.imageurl) {
+        console.warn(`Skipping row ${i + 1}: missing required fields`);
         continue;
       }
 
-      pins.push(pin as CSVPin);
+      // Add valid pin to array
+      pins.push({
+        title: pin.title,
+        description: pin.description,
+        imageUrl: pin.imageurl,
+        link: pin.link
+      });
     }
 
     return pins;
@@ -157,7 +170,7 @@ export function BulkUploadForm() {
     const headers = ['title', 'description', 'imageUrl', 'link'];
     const csv = [
       headers.join(','),
-      'Example Pin,A great description,https://example.com/image.jpg,https://example.com'
+      'Example Pin Title,A great description of the pin,https://example.com/image.jpg,https://example.com'
     ].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -190,6 +203,7 @@ export function BulkUploadForm() {
                     <li>imageUrl (required) - must be a valid image URL</li>
                     <li>link (optional)</li>
                   </ul>
+                  <p className="mt-2 italic">Note: Column names are case-insensitive</p>
                 </div>
               </div>
             </div>
