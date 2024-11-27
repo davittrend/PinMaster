@@ -1,7 +1,11 @@
 [build]
-  command = "npm run build"
+  command = "npm run clean && npm run build"
   publish = "dist"
   functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--no-audit --no-fund"
 
 [[redirects]]
   from = "/api/*"
@@ -18,3 +22,5 @@
   for = "/*"
     [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
