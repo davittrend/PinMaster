@@ -43,17 +43,14 @@ function App() {
         }}
       />
       <Routes>
-        <Route 
-          path="/" 
-          element={user ? <Navigate to="/dashboard" replace /> : <HomePage />} 
-        />
+        <Route path="/" element={<HomePage />} />
         <Route 
           path="/auth" 
           element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} 
         />
         <Route path="/callback" element={<CallbackPage />} />
         <Route 
-          path="/dashboard" 
+          path="/dashboard/*" 
           element={!user ? <Navigate to="/auth" replace /> : <DashboardPage />} 
         />
         <Route 
