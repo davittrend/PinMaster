@@ -10,7 +10,7 @@ const root = createRoot(document.getElementById('root')!);
 
 root.render(
   <StrictMode>
-    <BrowserRouter basename="/">
+    <BrowserRouter>
       <Provider store={store}>
         <App />
       </Provider>
