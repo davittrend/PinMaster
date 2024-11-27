@@ -11,12 +11,13 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export function useFirebaseAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -33,7 +34,8 @@ export function useFirebaseAuth() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);
       toast.success('Account created! Please check your email for verification.');
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -52,7 +54,8 @@ export function useFirebaseAuth() {
       setLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       toast.success('Successfully signed in!');
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -72,7 +75,8 @@ export function useFirebaseAuth() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       toast.success('Successfully signed in with Google!');
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
       return result.user;
     } catch (error: any) {
       console.error('Google sign in error:', error);
