@@ -14,6 +14,7 @@ export function SinglePinForm() {
   const [selectedBoard, setSelectedBoard] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { boards, isLoading: boardsLoading } = useBoards();
   const { schedulePin } = useScheduledPins();
@@ -25,43 +26,48 @@ export function SinglePinForm() {
     maxFiles: 1,
     onDrop: (acceptedFiles) => {
       const file = acceptedFiles[0];
-      setImageFile(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (file) {
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!imageFile) {
-      toast.error('Please select an image');
-      return;
-    }
+    setIsSubmitting(true);
 
-    const success = await schedulePin({
-      title,
-      description,
-      link,
-      imageFile,
-      boardId: selectedBoard,
-      scheduledTime
-    });
+    try {
+      const success = await schedulePin({
+        title,
+        description,
+        link,
+        imageFile,
+        imagePreview, // Pass the preview URL
+        boardId: selectedBoard,
+        scheduledTime
+      });
 
-    if (success) {
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setLink('');
-      setImageFile(null);
-      setImagePreview('');
-      setScheduledTime('');
-      setSelectedBoard('');
+      if (success) {
+        // Reset form
+        setTitle('');
+        setDescription('');
+        setLink('');
+        setImageFile(null);
+        setImagePreview('');
+        setScheduledTime('');
+        setSelectedBoard('');
+        toast.success('Pin scheduled successfully!');
+      }
+    } catch (error) {
+      console.error('Error scheduling pin:', error);
+      toast.error('Failed to schedule pin. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -107,6 +113,7 @@ export function SinglePinForm() {
             onChange={(e) => setTitle(e.target.value)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
             placeholder="Enter pin title"
+            required
           />
         </div>
 
@@ -118,6 +125,7 @@ export function SinglePinForm() {
             rows={3}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
             placeholder="Enter pin description"
+            required
           />
         </div>
 
@@ -147,6 +155,7 @@ export function SinglePinForm() {
                 boardsLoading ? 'bg-gray-50' : ''
               }`}
               disabled={boardsLoading}
+              required
             >
               <option value="">Select a board</option>
               {boards.map((board) => (
@@ -175,6 +184,7 @@ export function SinglePinForm() {
               onChange={(e) => setScheduledTime(e.target.value)}
               min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
               className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-red-500 focus:ring-red-500"
+              required
             />
           </div>
         </div>
@@ -183,14 +193,19 @@ export function SinglePinForm() {
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={boardsLoading}
+          disabled={isSubmitting || boardsLoading}
           className={`px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white 
-            ${boardsLoading 
+            ${(isSubmitting || boardsLoading)
               ? 'bg-gray-400 cursor-not-allowed' 
               : 'bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
             }`}
         >
-          {boardsLoading ? (
+          {isSubmitting ? (
+            <span className="flex items-center">
+              <Loader className="animate-spin h-4 w-4 mr-2" />
+              Scheduling...
+            </span>
+          ) : boardsLoading ? (
             <span className="flex items-center">
               <Loader className="animate-spin h-4 w-4 mr-2" />
               Loading Boards...
