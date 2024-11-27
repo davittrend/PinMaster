@@ -28,10 +28,18 @@ export function useScheduledPins() {
     }
 
     try {
-      // Store the actual data URL from the image preview
-      const imageUrl = pinData.imagePreview;
-      
-      if (!imageUrl) {
+      // Convert File to data URL if we have a file
+      let imageUrl = '';
+      if (pinData.imageFile) {
+        imageUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(pinData.imageFile);
+        });
+      } else if (pinData.imagePreview) {
+        imageUrl = pinData.imagePreview;
+      } else {
         toast.error('Image is required');
         return false;
       }
@@ -41,10 +49,10 @@ export function useScheduledPins() {
         title: pinData.title,
         description: pinData.description,
         link: pinData.link,
-        imageUrl: imageUrl, // Store the full data URL
+        imageUrl,
         boardId: pinData.boardId,
         scheduledTime: pinData.scheduledTime,
-        status: 'pending' as const
+        status: 'scheduled' as const
       };
 
       dispatch(addScheduledPin(newPin));
