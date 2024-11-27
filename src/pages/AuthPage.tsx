@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, CircleUserRound } from 'lucide-react';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
-import toast from 'react-hot-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function AuthPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const location = useLocation();
+  const [isSignUp, setIsSignUp] = useState(location.state?.signup || false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { signUp, signIn, signInWithGoogle, user } = useFirebaseAuth();
+  const { signUp, signIn, signInWithGoogle } = useFirebaseAuth();
   const navigate = useNavigate();
 
-  // Redirect if user is already authenticated
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
+    setIsSignUp(location.state?.signup || false);
+  }, [location.state?.signup]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +37,13 @@ function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     try {
+      setLoading(true);
       await signInWithGoogle();
       navigate('/dashboard');
     } catch (error) {
       console.error('Google sign in error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -131,7 +131,8 @@ function AuthPage() {
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              disabled={loading}
+              className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -159,7 +160,10 @@ function AuthPage() {
 
         <div className="text-center">
           <button
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              navigate('/auth', { state: { signup: !isSignUp }, replace: true });
+            }}
             className="text-sm text-red-600 hover:text-red-500"
           >
             {isSignUp
