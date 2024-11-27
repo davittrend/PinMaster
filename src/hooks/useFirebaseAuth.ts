@@ -11,28 +11,21 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import toast from 'react-hot-toast';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export function useFirebaseAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-
-      // If user is authenticated and on auth page, redirect to dashboard
-      if (currentUser && location.pathname === '/auth') {
-        const from = location.state?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
-      }
     });
 
     return () => unsubscribe();
-  }, [navigate, location]);
+  }, []);
 
   const signUp = async (email: string, password: string) => {
     try {
@@ -40,8 +33,7 @@ export function useFirebaseAuth() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);
       toast.success('Account created! Please check your email for verification.');
-      const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
+      navigate('/dashboard');
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -60,8 +52,7 @@ export function useFirebaseAuth() {
       setLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       toast.success('Successfully signed in!');
-      const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
+      navigate('/dashboard');
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -81,8 +72,7 @@ export function useFirebaseAuth() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       toast.success('Successfully signed in with Google!');
-      const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
+      navigate('/dashboard');
       return result.user;
     } catch (error: any) {
       console.error('Google sign in error:', error);
@@ -100,7 +90,7 @@ export function useFirebaseAuth() {
     try {
       await signOut(auth);
       toast.success('Successfully logged out');
-      navigate('/auth', { replace: true });
+      navigate('/auth');
     } catch (error: any) {
       console.error('Logout error:', error);
       toast.error(error.message || 'Failed to log out');
