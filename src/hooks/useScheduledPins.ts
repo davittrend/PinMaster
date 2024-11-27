@@ -28,16 +28,12 @@ export function useScheduledPins() {
     }
 
     try {
-      // If we have a file, upload it first
-      let imageUrl = pinData.imageUrl;
-      if (pinData.imageFile) {
-        // In a real app, you'd upload the file to your storage service here
-        // For now, we'll use a data URL
-        imageUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(pinData.imageFile);
-        });
+      // Use the image preview URL directly if available
+      const imageUrl = pinData.imagePreview || pinData.imageUrl;
+
+      if (!imageUrl) {
+        toast.error('Image is required');
+        return false;
       }
 
       const newPin = {
@@ -52,7 +48,6 @@ export function useScheduledPins() {
       };
 
       dispatch(addScheduledPin(newPin));
-      toast.success('Pin scheduled successfully');
       return true;
     } catch (error) {
       console.error('Schedule pin error:', error);
