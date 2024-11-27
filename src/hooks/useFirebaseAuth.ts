@@ -6,8 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup,
-  sendEmailVerification
+  signInWithPopup
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import toast from 'react-hot-toast';
@@ -19,27 +18,29 @@ export function useFirebaseAuth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
       setLoading(false);
+      
+      // Redirect to dashboard if user is authenticated
+      if (user && window.location.pathname === '/auth') {
+        navigate('/dashboard');
+      }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(userCredential.user);
-      toast.success('Account created! Please check your email for verification.');
+      toast.success('Account created successfully!');
+      navigate('/dashboard');
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign up error:', error);
-      const errorMessage = error.code === 'auth/email-already-in-use' 
-        ? 'Email already in use. Please sign in instead.'
-        : error.message || 'Failed to create account';
-      toast.error(errorMessage);
+      toast.error(error.message || 'Failed to create account');
       throw error;
     } finally {
       setLoading(false);
@@ -50,14 +51,12 @@ export function useFirebaseAuth() {
     try {
       setLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      toast.success('Successfully signed in!');
+      toast.success('Signed in successfully!');
+      navigate('/dashboard');
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign in error:', error);
-      const errorMessage = error.code === 'auth/invalid-credential'
-        ? 'Invalid email or password'
-        : error.message || 'Failed to sign in';
-      toast.error(errorMessage);
+      toast.error(error.message || 'Failed to sign in');
       throw error;
     } finally {
       setLoading(false);
@@ -69,14 +68,12 @@ export function useFirebaseAuth() {
       setLoading(true);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      toast.success('Successfully signed in with Google!');
+      toast.success('Signed in with Google successfully!');
+      navigate('/dashboard');
       return result.user;
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      const errorMessage = error.code === 'auth/popup-closed-by-user'
-        ? 'Sign in cancelled'
-        : error.message || 'Failed to sign in with Google';
-      toast.error(errorMessage);
+      toast.error(error.message || 'Failed to sign in with Google');
       throw error;
     } finally {
       setLoading(false);
@@ -86,8 +83,8 @@ export function useFirebaseAuth() {
   const logOut = async () => {
     try {
       await signOut(auth);
-      toast.success('Successfully logged out');
-      navigate('/auth', { replace: true });
+      toast.success('Logged out successfully');
+      navigate('/');
     } catch (error: any) {
       console.error('Logout error:', error);
       toast.error(error.message || 'Failed to log out');
